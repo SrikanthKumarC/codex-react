@@ -3,30 +3,42 @@ import React from "react";
 import './style.css'
 import { ToastContainer, toast } from 'react-toastify';
 import 'react-toastify/dist/ReactToastify.css';
+import Axios from 'axios'
+
 
 class App extends React.Component {
 
   constructor() {
     super()
 
-    this.state = { bal: 0, sal: 0, dss: 0, mss: 0, saving: 0, amt: 0, category: "trasnport",
+    this.state = { bal: 0, sal: 0, dss: 0, data: null, mss: 0, saving: 0, amt: 0, category: "trasnport",
+    file: null,
+    text: '',
     transport: {spends: 0}, 
     entertainment: {spends: 0}, 
     bills: {spends: 0}, 
     foodDrinks: {spends: 0}, 
     transactions: [
-     
+      {
+        amount: "200",
+        category: "transport",
+        date: new Date().toString()
+      }
     ]}
   }
 
   componentDidMount() {
     var tsns = JSON.parse(localStorage.getItem('transactions'))
-    this.setState({transactions: tsns})
+    if (this.state.transactions.length === 0) {
+      this.setState({transactions: tsns})
+    }
   }
 
   setSalary = (event) => {
       this.setState({sal: event.target.value})
+      this.setState({saving: this.state.sal})
   }
+
   setAmount = (event) => {
     this.setState({amt: event.target.value})
   }
@@ -36,7 +48,7 @@ class App extends React.Component {
   setSavings = (event) => {
     this.setState({saving: event.target.value})
   }
-
+  
   getSafeDailySpending = (sal, saving) => {
     var net = sal - saving
     var getSafeDailySpending = net/30
@@ -64,22 +76,46 @@ class App extends React.Component {
     this.getSafeMonthlySpending(this.state.sal, this.state.saving)
     toast("Saved!")
   }
-  
+  handleImageSubmit = event => {
+    const data = new FormData()
+    data.append("file", this.state.file)
+    Axios.post("http://localhost:3000/upload", data)
+    .then(res => this.setState({text: res.data}))
+    .catch(err => console.log(err))
+    console.log(data)
+  }
+  updateBalanceNegative = () => {
 
+    var balances = this.state.bal;
+    balances = balances - this.state.amt;
+    this.setState({bal: balances});
+
+  }
+
+  fetchImage = async (file) => {
+      // Creates a client
+    console.log(file);
+    console.log(typeof(file));
+  }
+
+  handleImage = (event) => {
+    const file = event.target.files[0];
+    this.setState({file})
+  }
 
   render() {
-    const maps = this.state.transactions.map((transaction) => {
-     return ( <ul key={this.state.transactions.date} className='transaction'>
-        <p >Amount: {transaction.amount}</p>
-        <p >Category: {transaction.category}</p>
-        <p >Date: {transaction.date}</p>
+    const maps = this.state.transactions.map((transaction, i) => {
+     return ( <ul key={i} className='transaction'>
+        <p key={i+1}>Amount: {transaction.amount}</p>
+        <p key={i+2}>Category: {transaction.category}</p>
+        <p key={i+3}>Date: {transaction.date}</p>
       </ul>
      )
     })
     return (
       <div className='main'>
         <div className='header'>
-          <h1>HEXAGON</h1>
+          <h1>Team Codex</h1>
         </div>
 
         <div className='keyinfo flex'>
@@ -129,6 +165,27 @@ class App extends React.Component {
 
           <button type="button" onClick={this.handleAdd}>Add transaction</button>
           </form> 
+
+          <form action='#'>
+          <input
+          id="file-img"
+          type="file"
+          accept="image/*"
+          capture="camera"
+          onChange={(event) => {
+            const files = event.target.files[0];
+            this.setState({file: files})
+            console.log("From inside func")
+            console.log(files)
+          }}
+        />
+    
+        <button type='button' onClick={this.handleImageSubmit}>
+          Save Image
+        </button>
+          
+          </form>
+          <textarea readOnly value={this.state.text === "" ? "waiting..." : this.state.text} />
         </div>
 
         {/* Transaction History */}

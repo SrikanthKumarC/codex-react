@@ -73,7 +73,15 @@ button {
     display: flex;
 }
 
+input {
+    border: 1px solid gray;
+}
+
 .keyinfo {
     background-color: rgb(123, 159, 171);
     padding: 4px;
+}
+
+textarea {
+    height: 200px;
 }
